@@ -1,11 +1,12 @@
 import streamlit as st
 from models import response_generator
-
-
+import pandas as pd
+from config import get_system_prompt
 
 
 
 st.title("Simple chat")
+memory = []
 
 # Initialize chat history
 if "messages" not in st.session_state:
@@ -26,6 +27,8 @@ if prompt := st.chat_input("What is up?"):
 
     # Display assistant response in chat message container
     with st.chat_message("assistant"):
+        prompt = get_system_prompt(memory=memory, user_prompt=prompt)
         response = st.write(response_generator(prompt=prompt))
+        memory.append(prompt)
     # Add assistant response to chat history
     st.session_state.messages.append({"role": "assistant", "content": response})

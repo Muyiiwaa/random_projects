@@ -1,7 +1,7 @@
 import random
 import time
-from google import genai
 from google.genai import types
+from google import genai
 
 client = genai.Client()
 
@@ -14,8 +14,11 @@ def response_generator(prompt):
             thinking_config=types.ThinkingConfig(thinking_budget=0) # Disables thinking
         ),
     )
-    
-    return response.text
+    response = response.text
+
+    for word in response.split():
+        yield word + " "
+        time.sleep(0.05)
 
 # Streamed response emulator
 def response_model():
