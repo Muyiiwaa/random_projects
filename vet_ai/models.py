@@ -2,8 +2,13 @@ import random
 import time
 from google.genai import types
 from google import genai
+import os
+from dotenv import load_dotenv
 
-client = genai.Client()
+# configure environment variables
+load_dotenv()
+api_key = os.getenv("GEMINI_API_KEY")
+client = genai.Client(api_key=api_key)
 
 def response_generator(prompt):
 

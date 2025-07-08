@@ -3,8 +3,6 @@ from models import response_generator
 import pandas as pd
 from config import get_system_prompt
 
-
-
 st.title("Simple chat")
 memory = []
 
