@@ -2,10 +2,11 @@ from fastapi import FastAPI,UploadFile,status,HTTPException,File
 from pydantic import BaseModel
 import logfire
 import uvicorn
-from schema import HomeResponse
+from schema import HomeResponse,ModelResponse
 from pathlib import Path
 import shutil
 from fastapi.responses import StreamingResponse
+from utils import predict_image
 
 
 
@@ -49,8 +50,30 @@ def display_image(image_file: UploadFile = File(...)):
         temp_file.unlink(missing_ok=True)
     
 
+@app.post(path="/diagnose/", response_model=ModelResponse,tags=["diagnostics"])
+def diagnose(image_file: UploadFile = File(...)):
+    """
+    This endpoint serves the skin condition diagnosis AI model
+    that accepts an image of any skin condition between the 
+    following ['Boil','clear skin','Eczema','keloids','Vitiligo']
+    and returns a dignosis and the corresponding confidence of
+    that diagnosis.
+    """
+    try:
+        temp_file = Path(f'temp_{image_file.filename}')
 
+        with temp_file.open(mode="wb") as buffer:
+            shutil.copyfileobj(fsrc = image_file.file, fdst = buffer)
+        
+        probability, condition = predict_image(image_path = temp_file)
+        
+        temp_file.unlink(missing_ok=True)
+    except Exception as err:
+        raise HTTPException(status_code = status.HTTP_500_INTERNAL_SERVER_ERROR, detail = f"An error occured: {err}")
+    
+    return ModelResponse(predicted_condition = condition, confidence = round(probability, 3))
+    
 
 
 if __name__ == "__main__":
-    uvicorn.run("main:app", host="localhost", port=4500, reload=True)
+    uvicorn.run("main:app", host="localhost", port=4501, reload=True)
