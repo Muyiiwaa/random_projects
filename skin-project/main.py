@@ -7,7 +7,10 @@ from pathlib import Path
 import shutil
 from fastapi.responses import StreamingResponse
 from utils import predict_image
+from dotenv import load_dotenv
+import os
 
+load_dotenv()
 
 
 app = FastAPI(
@@ -19,6 +22,9 @@ app = FastAPI(
     """,
     version= "v1"
 )
+
+logfire.configure(token=os.getenv("LOGFIRE_TOKEN"))
+logfire.instrument_fastapi(app)
 
 # create home endpoint
 
@@ -66,9 +72,12 @@ def diagnose(image_file: UploadFile = File(...)):
             shutil.copyfileobj(fsrc = image_file.file, fdst = buffer)
         
         probability, condition = predict_image(image_path = temp_file)
-        
+        logfire.info(f"""image_file: {image_file.filename},
+        confidence: {round(probability, 3)},diagnosis: {condition}""")
         temp_file.unlink(missing_ok=True)
+        
     except Exception as err:
+        logfire.error(f"an error occured: {err}")
         raise HTTPException(status_code = status.HTTP_500_INTERNAL_SERVER_ERROR, detail = f"An error occured: {err}")
     
     return ModelResponse(predicted_condition = condition, confidence = round(probability, 3))
