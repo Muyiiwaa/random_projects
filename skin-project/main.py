@@ -44,7 +44,7 @@ def display_image(image_file: UploadFile = File(...)):
         
         return StreamingResponse(content = open(temp_file, mode="rb"), media_type="image/png")
     except Exception as err:
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"An error occured while processing the image")
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"An error occured while processing the image: {err}")
     finally:
         temp_file.unlink(missing_ok=True)
     
